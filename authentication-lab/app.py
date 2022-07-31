@@ -1,6 +1,22 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask import session as login_session
 import pyrebase
+config={
+    
+  "apiKey": "AIzaSyCeM92vdtvp-XPDiITvz4tMg45SJ_HeOSc",
+  "authDomain": "layan-zahrawi.firebaseapp.com",
+  "projectId": "layan-zahrawi",
+  "storageBucket": "layan-zahrawi.appspot.com",
+  "messagingSenderId": "819872730920",
+  "appId": "1:819872730920:web:d569fcb1d4c3abe0eb0a1d",
+  "measurementId": "G-1BQHYQJ52W",
+  "databaseURL": ""
+
+}
+firebase=pyrebase.initialize_app(config)
+auth=firebase.auth()
+app=Flask(__name__)
+
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'super-secret-key'
@@ -8,12 +24,46 @@ app.config['SECRET_KEY'] = 'super-secret-key'
 
 @app.route('/', methods=['GET', 'POST'])
 def signin():
-    return render_template("signin.html")
+    error = ""
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        try:
+            login_session['user'] = auth.sign_in_with_email_and_password(email, password)
+            return redirect(url_for('add_tweet'))
+        except:
+           error = "Authentication failed"
+        return render_template("signin.html")
+    else:
+        if request.method == 'GET':
+            return render_template("signin.html")
+
+
+    
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    return render_template("signup.html")
+
+    if request.method == 'POST':
+        email = request.form['email']
+
+        password = request.form['password']
+        try:
+            login_session['user'] = auth.create_user_with_email_and_password(email, password)
+            return redirect(url_for('add_tweet'))
+        except:
+           error = "Authentication failed"
+           return error
+
+ 
+    else:
+         if request.method == 'GET':
+            return render_template("signup.html")
+
+    
+
+
 
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
