@@ -10,7 +10,7 @@ config={
   "messagingSenderId": "819872730920",
   "appId": "1:819872730920:web:d569fcb1d4c3abe0eb0a1d",
   "measurementId": "G-1BQHYQJ52W",
-  "databaseURL": ""
+  "databaseURL": "https://layan-zahrawi-default-rtdb.firebaseio.com/"
 
 }
 firebase=pyrebase.initialize_app(config)
@@ -47,11 +47,20 @@ def signup():
 
     if request.method == 'POST':
         email = request.form['email']
-
         password = request.form['password']
+        bio = request.form['bio']
+        fullname = request.form['fullname']
+        username = request.form['username']
         try:
             login_session['user'] = auth.create_user_with_email_and_password(email, password)
+            user = {"bio":bio,"fullname":fullname,"username":username,"password":password,"email":email}
+            db.child("users").child(login_session['user']['localId'] ).set(user)
+
+
+
+
             return redirect(url_for('add_tweet'))
+
         except:
            error = "Authentication failed"
            return error
@@ -68,7 +77,29 @@ def signup():
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
-    return render_template("add_tweet.html")
+
+    if request.method == 'POST':
+
+        text=requset.form['text']
+        title=requset.form['title']
+
+        
+        try:
+            login_session['user'] = auth.create_user_with_email_and_password(email, password)
+            tweet={"text":text,"title":title,"uid":login_session['user']['localId']}
+            db.child("add_tweet").push(tweet)
+            
+            return redirect(url_for('add_tweet'))
+
+        except:
+           error = "Authentication failed"
+           return error
+
+ 
+    else:
+
+        if request.method == 'GET':
+            return render_template("add_tweet.html")
 
 
 if __name__ == '__main__':
