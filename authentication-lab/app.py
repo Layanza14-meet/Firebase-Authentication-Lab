@@ -15,7 +15,10 @@ config={
 }
 firebase=pyrebase.initialize_app(config)
 auth=firebase.auth()
+db = firebase.database()
 app=Flask(__name__)
+
+
 
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
@@ -80,16 +83,15 @@ def add_tweet():
 
     if request.method == 'POST':
 
-        text=requset.form['text']
-        title=requset.form['title']
+        text=request.form['text']
+        title=request.form['title']
 
         
         try:
-            login_session['user'] = auth.create_user_with_email_and_password(email, password)
             tweet={"text":text,"title":title,"uid":login_session['user']['localId']}
-            db.child("add_tweet").push(tweet)
+            db.child("tweets").push(tweet)
             
-            return redirect(url_for('add_tweet'))
+            return redirect(url_for('all_tweets'))
 
         except:
            error = "Authentication failed"
@@ -100,6 +102,11 @@ def add_tweet():
 
         if request.method == 'GET':
             return render_template("add_tweet.html")
+
+@app.route('/all_tweets')
+def all_tweets():
+    tweets=db.child("tweets").get().val()
+    return render_template("tweets.html",tweets=tweets)
 
 
 if __name__ == '__main__':
